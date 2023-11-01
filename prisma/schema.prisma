@@ -16,4 +16,6 @@ model User {
   salt String
   verifier String
   dataPath String?
+  serverSecretEphemeral String?
+  clientPublicEphemeral String?
 }

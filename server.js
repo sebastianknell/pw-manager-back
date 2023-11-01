@@ -36,27 +36,50 @@ app.post("/generate", async (req, res) => {
 
     const user = await prisma.user.findUniqueOrThrow({
         where: {
-            username: username
+            username: username,
         },
         select: {
             salt: true,
             verifier: true,
+        },
+    });
+
+    const serverEphemeral = srp.generateEphemeral(user.verifier);
+
+    await prisma.user.update({
+        where: {
+            username: username
+        },
+        data: {
+            serverSecretEphemeral: serverEphemeral.secret,
+            clientPublicEphemeral: ephemeral
         }
     });
 
-    const serverEphemeral = srp.generateEphemeral(verifier);
-    // TODO: Store `serverEphemeral.secret` for later use
-
     res.json({
         salt: user.salt,
-        ephemeral: serverEphemeral.public
+        ephemeral: serverEphemeral.public,
     });
 });
 
 app.post("/login", async (req, res) => {
+    const username = req.body.username;
+    const proof = req.body.proof;
 
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            username: username,
+        },
+    });
+
+    const serverSession = srp.deriveSession(user.serverSecretEphemeral, user.clientPublicEphemeral, user.salt, username, user.verifier, proof);
+    console.log(serverSession.key);
+
+    res.json({
+        proof: serverSession.proof,
+    })
 })
 
-app.listen(3000, () => {
+app.listen(5050, () => {
     console.log('Server listening')
 })
