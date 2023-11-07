@@ -1,0 +1,23 @@
+[
+    {
+        "passwordId": 1,
+        "web": "google.com",
+        "username": "sebas",
+        "password": "hola",
+        "lastUpdate": ""
+    },
+    {
+        "passwordId": 2,
+        "web": "youtube.com",
+        "username": "sebas1",
+        "password": "hola1",
+        "lastUpdate": ""
+    },
+    {
+        "passwordId": 3,
+        "web": "facebook.com",
+        "username": "sebas2",
+        "password": "hola2",
+        "lastUpdate": ""
+    }
+]
