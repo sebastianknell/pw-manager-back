@@ -18,4 +18,5 @@ model User {
   dataPath String?
   serverSecretEphemeral String?
   clientPublicEphemeral String?
+  secretKey String? // Nueva columna para la clave secreta
 }
