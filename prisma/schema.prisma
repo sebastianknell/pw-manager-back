@@ -19,4 +19,6 @@ model User {
   serverSecretEphemeral String?
   clientPublicEphemeral String?
   secretKey String? // Nueva columna para la clave secreta
+  encryptionSalt String @default("randomSalt")
+  encryptionIV String @default("")
 }

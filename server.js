@@ -25,8 +25,10 @@ app.post("/register", async (req, res) => {
     const salt = req.body.salt;
     const verifier = req.body.verifier;
 
-    // Generar una clave secreta
-    const secretKey = crypto.lib.WordArray.random(16).toString(crypto.enc.Hex); // Cambia el tamaño según tus necesidades
+    const secretKey = crypto.lib.WordArray.random(16).toString(crypto.enc.Hex);
+    const encryptionSalt = crypto.lib.WordArray.random(16).toString(
+        crypto.enc.Hex
+    );
 
     await prisma.user.create({
         data: {
@@ -34,6 +36,7 @@ app.post("/register", async (req, res) => {
             salt,
             verifier,
             secretKey, // Guardamos la clave secreta en la base de datos
+            encryptionSalt
         },
     });
 
@@ -70,6 +73,7 @@ app.post("/generate", async (req, res) => {
     if (user) {
         const serverEphemeral = srp.generateEphemeral(user.verifier);
 
+        // TODO: añadir campo que reserve usuarios ya que no se podrían loggear 2 a la vez pq es mas de 1 paso
         await prisma.user.update({
             where: {
                 username: username,
@@ -106,7 +110,7 @@ app.post("/login", async (req, res) => {
     try {
         // Use la secretKey almacenada en la base de datos como contraseña durante la autenticación
         const serverSession = srp.deriveSession(
-            user.secretKey,
+            user.serverSecretEphemeral,
             user.clientPublicEphemeral,
             user.salt,
             username,
@@ -115,7 +119,7 @@ app.post("/login", async (req, res) => {
         );
         console.log(serverSession.key);
 
-        const token = jwt.sign({ userId: user.userId, username }, tokenSecret);
+        const token = jwt.sign({ userId: user.userId, username, encryptionSalt: user.encryptionSalt }, tokenSecret, {expiresIn: "300s"});
         console.log(token);
         res.json({
             proof: serverSession.proof,
@@ -146,13 +150,11 @@ const authenticateJWT = (req, res, next) => {
 
 app.get("/getpasswords", authenticateJWT, async (req, res) => {
     const { userId } = req.user;
+    console.log(userId);
 
     const userData = await prisma.user.findFirst({
         where: {
             userId: userId,
-        },
-        select: {
-            dataPath: true,
         },
     });
 
@@ -161,12 +163,13 @@ app.get("/getpasswords", authenticateJWT, async (req, res) => {
     }
 
     // const data = fs.readFileSync(userData.dataPath);
-    return res.json({ passwordData: userData.dataPath });
+    return res.json({ passwordData: userData.dataPath, encryptionIV: userData.encryptionIV });
 });
 
 app.post("/savepasswords", authenticateJWT, async (req, res) => {
     const { userId } = req.user;
     const passwordData = req.body.passwordData;
+    console.log(userId)
     console.log(passwordData);
 
     await prisma.user.update({
