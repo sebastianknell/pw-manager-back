@@ -169,8 +169,10 @@ app.get("/getpasswords", authenticateJWT, async (req, res) => {
 app.post("/savepasswords", authenticateJWT, async (req, res) => {
     const { userId } = req.user;
     const passwordData = req.body.passwordData;
+    const encryptionIV = req.body.encryptionIV;
     console.log(userId)
     console.log(passwordData);
+    console.log(encryptionIV);
 
     await prisma.user.update({
         where: {
@@ -178,6 +180,7 @@ app.post("/savepasswords", authenticateJWT, async (req, res) => {
         },
         data: {
             dataPath: passwordData,
+            encryptionIV
         },
     });
 
