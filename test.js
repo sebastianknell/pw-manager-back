@@ -5,7 +5,7 @@ const fs = require("fs")
 // prisma.user
 //     .update({
 //         where: {
-//             username: "guille2400",
+//             username: "sebastianknell2",
 //         },
 //         data: {
 //             dataPath: null,
@@ -14,9 +14,9 @@ const fs = require("fs")
 //     .then((data) => console.log(data));
 
 prisma.user
-    .findMany({
+    .findFirst({
         where: {
-            username: "sebastianknell"
-        }
+            username: "sebastianknell2"
+        },
     })
     .then((data) => console.log(data));

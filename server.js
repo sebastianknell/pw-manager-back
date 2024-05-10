@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const app = express();
 const crypto = require("crypto-js");
-const copyPaste = require("copy-paste");
 
 app.use(cors());
 app.use(express.json());
@@ -25,9 +24,8 @@ app.post("/register", async (req, res) => {
     const salt = req.body.salt;
     const verifier = req.body.verifier;
 
-    const secretKey = crypto.lib.WordArray.random(16).toString(crypto.enc.Hex);
     const encryptionSalt = crypto.lib.WordArray.random(16).toString(
-        crypto.enc.Hex
+        crypto.enc.Hex,
     );
 
     await prisma.user.create({
@@ -35,26 +33,13 @@ app.post("/register", async (req, res) => {
             username,
             salt,
             verifier,
-            secretKey, // Guardamos la clave secreta en la base de datos
-            encryptionSalt
+            encryptionSalt,
         },
     });
 
-    // Muestra la clave secreta al usuario y cópiala al portapapeles
-    console.log("Secret Key:", secretKey);
-    try {
-        copyPaste.copy(secretKey, () => {
-            console.log("Clave copiada al portapapeles");
-        });
-    } catch (error) {
-        console.error(
-            "Error al copiar la clave al portapapeles:",
-            error.message
-        );
-    }
-
     res.send();
 });
+
 app.post("/generate", async (req, res) => {
     const username = req.body.username;
     const ephemeral = req.body.ephemeral;
@@ -66,7 +51,6 @@ app.post("/generate", async (req, res) => {
         select: {
             salt: true,
             verifier: true,
-            secretKey: true, // Asegúrate de incluir la secretKey en la respuesta
         },
     });
 
@@ -87,13 +71,10 @@ app.post("/generate", async (req, res) => {
         res.json({
             salt: user.salt,
             ephemeral: serverEphemeral.public,
-            user: {
-                secretKey: user.secretKey, // Incluye la secretKey en la respuesta
-            },
         });
     } else {
         // Manejo de error si el usuario no existe
-        res.status(404).json({ error: "Usuario no encontrado" });
+        res.status(400).json({ error: "Usuario no encontrado" });
     }
 });
 
@@ -108,18 +89,25 @@ app.post("/login", async (req, res) => {
     });
 
     try {
-        // Use la secretKey almacenada en la base de datos como contraseña durante la autenticación
         const serverSession = srp.deriveSession(
             user.serverSecretEphemeral,
             user.clientPublicEphemeral,
             user.salt,
             username,
             user.verifier,
-            proof
+            proof,
         );
         console.log(serverSession.key);
 
-        const token = jwt.sign({ userId: user.userId, username, encryptionSalt: user.encryptionSalt }, tokenSecret, {expiresIn: "300s"});
+        const token = jwt.sign(
+            {
+                userId: user.userId,
+                username,
+                encryptionSalt: user.encryptionSalt,
+            },
+            tokenSecret,
+            { expiresIn: "300s" },
+        );
         console.log(token);
         res.json({
             proof: serverSession.proof,
@@ -127,23 +115,24 @@ app.post("/login", async (req, res) => {
         });
     } catch (e) {
         console.log(e);
-        res.sendStatus(403);
+        res.sendStatus(400);
     }
 });
 
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
-
     if (authHeader) {
         const token = authHeader.split(" ")[1];
         jwt.verify(token, tokenSecret, (err, user) => {
             if (err) {
+                console.log("invalid token");
                 return res.sendStatus(403);
             }
             req.user = user;
             next();
         });
     } else {
+        console.log("missing header");
         res.sendStatus(401);
     }
 };
@@ -159,18 +148,27 @@ app.get("/getpasswords", authenticateJWT, async (req, res) => {
     });
 
     if (!userData || !userData.dataPath) {
-        return res.json({ passwordData: "" });
+        return res.json({
+            passwordData: "",
+            encryptionIV: "",
+            tag: "",
+        });
     }
 
     // const data = fs.readFileSync(userData.dataPath);
-    return res.json({ passwordData: userData.dataPath, encryptionIV: userData.encryptionIV });
+    return res.json({
+        passwordData: userData.dataPath,
+        encryptionIV: userData.encryptionIV,
+        tag: userData.encryptionTag,
+    });
 });
 
 app.post("/savepasswords", authenticateJWT, async (req, res) => {
     const { userId } = req.user;
     const passwordData = req.body.passwordData;
     const encryptionIV = req.body.encryptionIV;
-    console.log(userId)
+    const tag = req.body.tag;
+    console.log(userId);
     console.log(passwordData);
     console.log(encryptionIV);
 
@@ -180,7 +178,8 @@ app.post("/savepasswords", authenticateJWT, async (req, res) => {
         },
         data: {
             dataPath: passwordData,
-            encryptionIV
+            encryptionIV,
+            encryptionTag: tag,
         },
     });
 
