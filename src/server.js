@@ -53,11 +53,10 @@ app.post("/generate", async (req, res) => {
             verifier: true,
         },
     });
-
+    // TODO: update to return serverEphemeral needed for load testing
     if (user) {
         const serverEphemeral = srp.generateEphemeral(user.verifier);
 
-        // TODO: añadir campo que reserve usuarios ya que no se podrían loggear 2 a la vez pq es mas de 1 paso
         await prisma.user.update({
             where: {
                 username: username,

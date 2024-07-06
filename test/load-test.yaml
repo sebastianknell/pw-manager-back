@@ -1,0 +1,32 @@
+config:
+  target: "localhost:5050"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+  processor: "./load-test-helper.js"
+
+scenarios:
+  - name: "Register"
+    flow:
+      - post:
+          url: "/register"
+          beforeRequest: generateRegisterData
+          json:
+            username: "{{username}}"
+            salt: "{{salt}}"
+            verifier: "{{verifier}}" 
+  - name: "Log in"
+    flow:
+      - post:
+          url: "/generate"
+      - post:
+          url: "/login"
+  - name: "Get passwords"
+    flow:
+      - post:
+          url: "/getpasswords"
+      - think: 5
+  - name: "Save passwords"
+    flow:
+      - post:
+          url: "/savepasswords"

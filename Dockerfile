@@ -4,4 +4,4 @@ COPY . .
 RUN npm i
 RUN npx prisma generate
 EXPOSE 5050
-CMD [ "node", "server.js" ]
+CMD [ "npm", "start" ]

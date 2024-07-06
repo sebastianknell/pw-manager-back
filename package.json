@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "migrate": "npx prisma migrate dev && npx prisma generate"
+        "start": "node src/server.js",
+        "migrate": "npx prisma migrate dev && npx prisma generate",
+        "load-test": "artillery run test/load-test.yaml"
     },
     "keywords": [],
     "author": "",
@@ -22,6 +24,7 @@
         "tssrp6a": "^3.0.0"
     },
     "devDependencies": {
+        "artillery": "^2.0.16",
         "prisma": "^5.5.2"
     }
 }
