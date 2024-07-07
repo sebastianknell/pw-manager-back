@@ -14,13 +14,28 @@ scenarios:
           json:
             username: "{{username}}"
             salt: "{{salt}}"
-            verifier: "{{verifier}}" 
+            verifier: "{{verifier}}"
   - name: "Log in"
     flow:
       - post:
           url: "/generate"
+          beforeRequest: generateEphemeralData
+          json:
+            username: "{{username}}"
+            ephemeral: "{{clientPublic}}"
+          capture: 
+            json: "$.ephemeral"
+            as: "serverPublic"
       - post:
           url: "/login"
+          beforeRequest: generateProof
+          json:
+            username: "{{username}}"
+            proof: "{{clientProof}}"
+          capture: 
+            json: "$.token"
+            as: "authToken"
+            
   - name: "Get passwords"
     flow:
       - post:
