@@ -1,12 +1,13 @@
 config:
-  target: "localhost:5050"
+  target: "http://localhost:5050"
   phases:
-    - duration: 30
-      arrivalRate: 10
+    - duration: 6
+      name: "Normal usage"
+      arrivalRate: 3
   processor: "./load-test-helper.js"
 
 scenarios:
-  - name: "Register"
+  - name: "Complete flow"
     flow:
       - post:
           url: "/register"
@@ -15,8 +16,6 @@ scenarios:
             username: "{{username}}"
             salt: "{{salt}}"
             verifier: "{{verifier}}"
-  - name: "Log in"
-    flow:
       - post:
           url: "/generate"
           beforeRequest: generateEphemeralData
@@ -35,13 +34,25 @@ scenarios:
           capture: 
             json: "$.token"
             as: "authToken"
-            
-  - name: "Get passwords"
-    flow:
-      - post:
-          url: "/getpasswords"
-      - think: 5
-  - name: "Save passwords"
-    flow:
       - post:
           url: "/savepasswords"
+          headers:
+            Authorization: "Bearer {{authToken}}"
+          beforeRequest: generatePasswordData
+          json:
+            passwordData: "{{passwordData}}"
+            encryptionIV: "{{encryptionIV}}"
+            tag: ""
+      - think: 5
+      - get:
+          url: "/getpasswords"
+          headers:
+            Authorization: "Bearer {{authToken}}"
+          capture:
+            json: "$.passwordData"
+            as: "passwordDataResponse"
+          expect: 
+            statusCode: 200
+            equals:
+              - "{{passwordDataResponse}}"
+              - "{{passwordData}}"
