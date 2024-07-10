@@ -108,7 +108,7 @@ Este proyecto ha sido puesto en producción en Google Cloud. Concretamente en Cl
 
 ## Pruebas de Carga
 
-Para realizar pruebas de carga, utiliza **Artillery**. Primero, instala Artillery globalmente si aún no lo has hecho:
+Para realizar pruebas de carga, utilizamos **Artillery**. Primero, instalamos Artillery globalmente:
 
 ```bash
 npm install -g artillery
@@ -117,9 +117,10 @@ npm install -g artillery
 Luego, ejecuta las pruebas con el siguiente comando:
 
 ```bash
-npm run load-test.yaml
+npm run load-test
 ```
 
+Esto realizará una prueba de estrés en la API simulando un uso masivo de varios usuarios a la vez. La definición de estra prueba se puede encontrar en el [YAML](./test/load-test.yaml).
 Para visualizar un reporte de los resultados del test que creamos, usamos:
 
 ```bash
@@ -127,6 +128,3 @@ artillery run --output results.json test/load-test.yaml
 artillery report --output report.html results.json
 xdg-open report.html
 ```
-
-Esto simulará usuarios que interactúan con el sistema, ayudando a evaluar el rendimiento y la escalabilidad del servidor.
-
