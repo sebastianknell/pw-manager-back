@@ -1,5 +1,5 @@
 # pw-manager-back
-Backend for [Password Manager](https://github.com/sebastianknell/pw-manager).
+Frontend for [Password Manager](https://github.com/sebastianknell/pw-manager).
 
 # Password Manager
 
