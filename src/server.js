@@ -53,7 +53,7 @@ app.post("/generate", async (req, res) => {
             verifier: true,
         },
     });
-    // TODO: update to return serverEphemeral needed for load testing
+
     if (user) {
         const serverEphemeral = srp.generateEphemeral(user.verifier);
 

@@ -5,7 +5,7 @@ Frontend for [Password Manager](https://github.com/sebastianknell/pw-manager).
 
 ## Descripción
 
-Este proyecto es un **Password Manager** que permite a los usuarios registrarse, iniciar sesión y almacenar contraseñas de manera segura. Utiliza técnicas avanzadas de autenticación como **Zero Knowledge Proofs (ZKP)** y **Secure Remote Password (SRP)** junto con JWT para asegurar el acceso a los datos del usuario.
+Este proyecto es un **Password Manager** que permite a los usuarios registrarse, iniciar sesión y almacenar contraseñas de manera segura. Utiliza técnicas avanzadas de autenticación como **Zero Knowledge Proofs (ZKP)** y **Secure Remote Password (SRP)** junto con JWT para asegurar el acceso a los datos del usuario. Además las contraseñas son encriptadas con AES-GCM 256.
 
 ## Tecnologías Utilizadas
 
@@ -102,6 +102,9 @@ Este proyecto es un **Password Manager** que permite a los usuarios registrarse,
     ```
 
 - **Descripción:** Guarda los datos de contraseñas para el usuario autenticado.
+
+## Deploy
+Este proyecto ha sido puesto en producción en Google Cloud. Concretamente en Cloud Run como contenedor. Utilizamos el script [Deploy](./deploy.sh) para crear el contenedor dado por el [Dockerfile](./Dockerfile) para luego subirlo al registro de contenedores de Google Cloud y hacer el deploy en Cloud Run. Cabe mencionar que como base de datos usamos Cloud SQL.
 
 ## Pruebas de Carga
 
